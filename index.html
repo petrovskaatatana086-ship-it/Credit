@@ -1,0 +1,229 @@
+export default function CreditTrackerPreview() {
+  const credits = [
+    {
+      id: 1,
+      bank: 'Сбербанк',
+      type: 'Потребительский кредит',
+      remaining: 420000,
+      total: 800000,
+      monthly: 25000,
+      progress: 52,
+      nextDate: '15.06.2026',
+      status: 'Оплачен',
+      color: 'bg-green-500',
+    },
+    {
+      id: 2,
+      bank: 'Т-Банк',
+      type: 'Кредит наличными',
+      remaining: 180000,
+      total: 450000,
+      monthly: 12000,
+      progress: 61,
+      nextDate: '22.06.2026',
+      status: 'Через 5 дней',
+      color: 'bg-blue-500',
+    },
+    {
+      id: 3,
+      bank: 'ВТБ',
+      type: 'Ипотека',
+      remaining: 640000,
+      total: 2500000,
+      monthly: 22000,
+      progress: 26,
+      nextDate: '05.07.2026',
+      status: 'Оплачен',
+      color: 'bg-violet-500',
+    },
+  ]
+
+  const totalDebt = credits.reduce((acc, item) => acc + item.remaining, 0)
+  const monthlyTotal = credits.reduce((acc, item) => acc + item.monthly, 0)
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">Credit Tracker</h1>
+            <p className="text-gray-500 mt-1">Ваши кредиты под контролем</p>
+          </div>
+
+          <button className="bg-white shadow-lg rounded-2xl p-3 text-xl">
+            ⚙️
+          </button>
+        </div>
+
+        <div className="bg-gradient-to-r from-violet-600 to-blue-500 rounded-3xl p-6 text-white shadow-xl mb-6">
+          <p className="opacity-80 text-sm">Общий долг</p>
+
+          <h2 className="text-4xl font-bold mt-2">
+            {totalDebt.toLocaleString()} ₽
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div>
+              <p className="opacity-70 text-sm">Платежи / месяц</p>
+              <h3 className="text-2xl font-semibold mt-1">
+                {monthlyTotal.toLocaleString()} ₽
+              </h3>
+            </div>
+
+            <div>
+              <p className="opacity-70 text-sm">Переплата</p>
+              <h3 className="text-2xl font-semibold mt-1">
+                410 000 ₽
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl p-5 shadow-xl mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Добавить кредит</h2>
+            <div className="bg-violet-100 text-violet-700 rounded-full px-3 py-1 text-sm font-medium">
+              PWA
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <input
+              placeholder="Название банка"
+              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
+            />
+
+            <input
+              placeholder="Сумма кредита"
+              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
+            />
+
+            <input
+              placeholder="Ежемесячный платёж"
+              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
+            />
+
+            <button className="w-full bg-black text-white py-4 rounded-2xl mt-2 font-semibold text-lg shadow-lg">
+              Сохранить кредит
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">Мои кредиты</h2>
+
+          <button className="bg-violet-600 text-white rounded-2xl w-12 h-12 text-2xl shadow-lg">
+            +
+          </button>
+        </div>
+
+        <div className="space-y-5 pb-24">
+          {credits.map((credit) => (
+            <div
+              key={credit.id}
+              className="bg-white rounded-3xl p-5 shadow-xl"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-xl">
+                      💳
+                    </div>
+
+                    <div>
+                      <h2 className="text-xl font-bold">{credit.bank}</h2>
+                      <p className="text-gray-500 text-sm">
+                        {credit.type}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button className="text-red-500 text-xl">✕</button>
+              </div>
+
+              <div className="mt-5 flex items-end justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Осталось</p>
+                  <h3 className="text-3xl font-bold mt-1">
+                    {credit.remaining.toLocaleString()} ₽
+                  </h3>
+                </div>
+
+                <div className="text-right">
+                  <p className="text-gray-500 text-sm">из {credit.total.toLocaleString()} ₽</p>
+                  <p className="font-semibold mt-1">
+                    Платёж: {credit.monthly.toLocaleString()} ₽
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className={`${credit.color} h-3 rounded-full`}
+                    style={{ width: `${credit.progress}%` }}
+                  />
+                </div>
+
+                <div className="flex justify-between mt-2 text-sm">
+                  <p className="text-gray-600">
+                    {credit.progress}% выплачено
+                  </p>
+
+                  <p className="font-medium">
+                    {credit.status}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 bg-gray-100 rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">
+                    Следующий платёж
+                  </p>
+
+                  <h4 className="font-bold mt-1">
+                    {credit.nextDate}
+                  </h4>
+                </div>
+
+                <button className="bg-black text-white px-5 py-3 rounded-2xl font-medium shadow-lg">
+                  Отметить
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-4 flex justify-around items-center border border-gray-100">
+            <button className="flex flex-col items-center text-violet-600">
+              <span className="text-2xl">🏠</span>
+              <span className="text-xs mt-1">Главная</span>
+            </button>
+
+            <button className="flex flex-col items-center text-gray-400">
+              <span className="text-2xl">💳</span>
+              <span className="text-xs mt-1">Кредиты</span>
+            </button>
+
+            <button className="bg-violet-600 text-white rounded-full w-16 h-16 text-3xl shadow-2xl -mt-10">
+              +
+            </button>
+
+            <button className="flex flex-col items-center text-gray-400">
+              <span className="text-2xl">📅</span>
+              <span className="text-xs mt-1">Платежи</span>
+            </button>
+
+            <button className="flex flex-col items-center text-gray-400">
+              <span className="text-2xl">📊</span>
+              <span className="text-xs mt-1">Статистика</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
