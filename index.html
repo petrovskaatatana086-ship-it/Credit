@@ -1,229 +1,681 @@
-export default function CreditTrackerPreview() {
-  const credits = [
-    {
-      id: 1,
-      bank: 'Сбербанк',
-      type: 'Потребительский кредит',
-      remaining: 420000,
-      total: 800000,
-      monthly: 25000,
-      progress: 52,
-      nextDate: '15.06.2026',
-      status: 'Оплачен',
-      color: 'bg-green-500',
-    },
-    {
-      id: 2,
-      bank: 'Т-Банк',
-      type: 'Кредит наличными',
-      remaining: 180000,
-      total: 450000,
-      monthly: 12000,
-      progress: 61,
-      nextDate: '22.06.2026',
-      status: 'Через 5 дней',
-      color: 'bg-blue-500',
-    },
-    {
-      id: 3,
-      bank: 'ВТБ',
-      type: 'Ипотека',
-      remaining: 640000,
-      total: 2500000,
-      monthly: 22000,
-      progress: 26,
-      nextDate: '05.07.2026',
-      status: 'Оплачен',
-      color: 'bg-violet-500',
-    },
-  ]
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CFO Ковенант-монитор | Долг, EBITDA, стресс-тесты, прогноз</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #eef2f9;
+            margin: 0;
+            padding: 24px 20px;
+        }
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* tabs */
 
-  const totalDebt = credits.reduce((acc, item) => acc + item.remaining, 0)
-  const monthlyTotal = credits.reduce((acc, item) => acc + item.monthly, 0)
+        .tab-btn {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tab-pane.active-pane {
+            display: block !important;
+        }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-200 flex justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Credit Tracker</h1>
-            <p className="text-gray-500 mt-1">Ваши кредиты под контролем</p>
-          </div>
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+            border-bottom: 1px solid #cfdfed;
+            padding-bottom: 8px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 22px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c5a6e;
+        }
+        .tab-btn.active {
+            background: #1e6f5c;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .tab-pane {
+            display: none;
+            animation: fade 0.2s ease;
+        }
+        .tab-pane.active-pane {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+            border: 1px solid #e2edf2;
+            transition: all 0.1s;
+        }
+        .card-header {
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-left: 5px solid #1e6f5c;
+            padding-left: 14px;
+            margin-bottom: 20px;
+            color: #0a2e3b;
+        }
+        .input-row {
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+        }
+        .input-row label {
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: #2c5a6e;
+            min-width: 160px;
+        }
+        input, select {
+            padding: 10px 14px;
+            border-radius: 18px;
+            border: 1px solid #cbdde9;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: white;
+            flex: 1;
+            min-width: 140px;
+        }
 
-          <button className="bg-white shadow-lg rounded-2xl p-3 text-xl">
-            ⚙️
-          </button>
-        </div>
+        .field-wrap {
+            flex: 1;
+            min-width: 180px;
+        }
+        .field-wrap input {
+            width: 100%;
+        }
+        .field-note {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.72rem;
+            line-height: 1.35;
+            color: #6b8394;
+        }
+        .section-note {
+            background: #f8fafd;
+            border: 1px dashed #cbdde9;
+            color: #3d6b80;
+            border-radius: 18px;
+            padding: 12px 14px;
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin-bottom: 16px;
+        }
 
-        <div className="bg-gradient-to-r from-violet-600 to-blue-500 rounded-3xl p-6 text-white shadow-xl mb-6">
-          <p className="opacity-80 text-sm">Общий долг</p>
+        .metric-big {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0b2b3b;
+            line-height: 1.2;
+        }
+        .metric-small {
+            font-size: 0.75rem;
+            color: #5f7d95;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .pass { background: #dcfce7; color: #15803d; }
+        .fail { background: #fee2e2; color: #b91c1c; }
+        .warn { background: #fff0db; color: #b45f06; }
+        .progress-bar {
+            background: #e5eef4;
+            border-radius: 20px;
+            height: 12px;
+            width: 100%;
+            margin: 12px 0;
+        }
+        .progress-fill {
+            background: #1e6f5c;
+            height: 12px;
+            border-radius: 20px;
+            width: 0%;
+        }
+        .sensitivity-group {
+            background: #f8fafd;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+        }
+        button {
+            background: #1e6f5c;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 32px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button.outline {
+            background: transparent;
+            border: 1px solid #1e6f5c;
+            color: #1e6f5c;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            height: 1px;
+            background: #e2edf2;
+        }
+        .verdict {
+            background: #f0f6fa;
+            border-radius: 20px;
+            padding: 16px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
 
-          <h2 className="text-4xl font-bold mt-2">
-            {totalDebt.toLocaleString()} ₽
-          </h2>
+        input[data-money], input[data-rate], input[data-percent] {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.02em;
+        }
+        @media (max-width: 700px) {
+            body {
+                padding: 14px 10px;
+            }
+            .tabs {
+                gap: 6px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 10px;
+            }
+            .tab-btn {
+                flex: 0 0 auto;
+                padding: 10px 14px;
+                font-size: 0.82rem;
+                white-space: nowrap;
+            }
+            .grid-2col {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .card {
+                border-radius: 20px;
+                padding: 14px;
+            }
+            .card-header {
+                font-size: 1rem;
+                margin-bottom: 14px;
+            }
+            .input-row {
+                gap: 8px;
+                margin-bottom: 16px;
+            }
+            .input-row label {
+                width: 100%;
+                min-width: 0;
+                font-size: 0.82rem;
+            }
+            .field-wrap {
+                width: 100%;
+                min-width: 0;
+            }
+            input, select {
+                width: 100%;
+                min-width: 0;
+                flex: none;
+                font-size: 1rem;
+                padding: 12px 14px;
+                border-radius: 14px;
+            }
+            input[data-money], input[data-rate], input[data-percent] {
+                font-size: 1.08rem;
+            }
+            input[type="range"] {
+                padding-left: 0;
+                padding-right: 0;
+            }
+            .metric-big {
+                font-size: 1.55rem;
+                word-break: break-word;
+            }
+            .section-note, .field-note, .verdict {
+                font-size: 0.78rem;
+            }
+        }
 
-          <div className="grid grid-cols-2 gap-4 mt-6">
-            <div>
-              <p className="opacity-70 text-sm">Платежи / месяц</p>
-              <h3 className="text-2xl font-semibold mt-1">
-                {monthlyTotal.toLocaleString()} ₽
-              </h3>
-            </div>
-
-            <div>
-              <p className="opacity-70 text-sm">Переплата</p>
-              <h3 className="text-2xl font-semibold mt-1">
-                410 000 ₽
-              </h3>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-3xl p-5 shadow-xl mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Добавить кредит</h2>
-            <div className="bg-violet-100 text-violet-700 rounded-full px-3 py-1 text-sm font-medium">
-              PWA
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <input
-              placeholder="Название банка"
-              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
-            />
-
-            <input
-              placeholder="Сумма кредита"
-              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
-            />
-
-            <input
-              placeholder="Ежемесячный платёж"
-              className="w-full border border-gray-200 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-violet-400"
-            />
-
-            <button className="w-full bg-black text-white py-4 rounded-2xl mt-2 font-semibold text-lg shadow-lg">
-              Сохранить кредит
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Мои кредиты</h2>
-
-          <button className="bg-violet-600 text-white rounded-2xl w-12 h-12 text-2xl shadow-lg">
-            +
-          </button>
-        </div>
-
-        <div className="space-y-5 pb-24">
-          {credits.map((credit) => (
-            <div
-              key={credit.id}
-              className="bg-white rounded-3xl p-5 shadow-xl"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-xl">
-                      💳
-                    </div>
-
-                    <div>
-                      <h2 className="text-xl font-bold">{credit.bank}</h2>
-                      <p className="text-gray-500 text-sm">
-                        {credit.type}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <button className="text-red-500 text-xl">✕</button>
-              </div>
-
-              <div className="mt-5 flex items-end justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Осталось</p>
-                  <h3 className="text-3xl font-bold mt-1">
-                    {credit.remaining.toLocaleString()} ₽
-                  </h3>
-                </div>
-
-                <div className="text-right">
-                  <p className="text-gray-500 text-sm">из {credit.total.toLocaleString()} ₽</p>
-                  <p className="font-semibold mt-1">
-                    Платёж: {credit.monthly.toLocaleString()} ₽
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5">
-                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                  <div
-                    className={`${credit.color} h-3 rounded-full`}
-                    style={{ width: `${credit.progress}%` }}
-                  />
-                </div>
-
-                <div className="flex justify-between mt-2 text-sm">
-                  <p className="text-gray-600">
-                    {credit.progress}% выплачено
-                  </p>
-
-                  <p className="font-medium">
-                    {credit.status}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-5 bg-gray-100 rounded-2xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">
-                    Следующий платёж
-                  </p>
-
-                  <h4 className="font-bold mt-1">
-                    {credit.nextDate}
-                  </h4>
-                </div>
-
-                <button className="bg-black text-white px-5 py-3 rounded-2xl font-medium shadow-lg">
-                  Отметить
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-md px-4">
-          <div className="bg-white rounded-3xl shadow-2xl p-4 flex justify-around items-center border border-gray-100">
-            <button className="flex flex-col items-center text-violet-600">
-              <span className="text-2xl">🏠</span>
-              <span className="text-xs mt-1">Главная</span>
-            </button>
-
-            <button className="flex flex-col items-center text-gray-400">
-              <span className="text-2xl">💳</span>
-              <span className="text-xs mt-1">Кредиты</span>
-            </button>
-
-            <button className="bg-violet-600 text-white rounded-full w-16 h-16 text-3xl shadow-2xl -mt-10">
-              +
-            </button>
-
-            <button className="flex flex-col items-center text-gray-400">
-              <span className="text-2xl">📅</span>
-              <span className="text-xs mt-1">Платежи</span>
-            </button>
-
-            <button className="flex flex-col items-center text-gray-400">
-              <span className="text-2xl">📊</span>
-              <span className="text-xs mt-1">Статистика</span>
-            </button>
-          </div>
-        </div>
-      </div>
+        @media (max-width: 700px) {
+            .input-row { flex-direction: column; align-items: flex-start; }
+            .card { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div style="margin-bottom: 16px;">
+        <h1 style="margin:0; color:#0a2e3b;">📐 Ковенант-монитор PRO</h1>
+        <p style="color:#3d6b80;">Долг / EBITDA • ICR • Стресс • Прогноз запаса (Headroom) — для финдира и кредитного комитета</p>
     </div>
-  )
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="fact">📋 Факт (LTM)</button>
+        <button class="tab-btn" data-tab="debt">🏦 Долг и ставки</button>
+        <button class="tab-btn" data-tab="stress">⚠️ Стресс-тест</button>
+        <button class="tab-btn" data-tab="forecast">🔮 Прогноз + Headroom</button>
+    </div>
+
+    <!-- ========================= ВКЛАДКА 1: ФАКТ ========================= -->
+    <div id="factPane" class="tab-pane active-pane">
+        <div class="grid-2col">
+            <div class="card">
+                <div class="card-header">📊 Базовые финансовые показатели (LTM)</div>
+                <div class="section-note">Все суммы вводятся в <strong>тыс. руб.</strong> за последние 12 месяцев / 4 квартала (LTM), если не указано иначе.</div>
+                <div class="input-row"><label>Чистая прибыль за 4 квартала (тыс. руб)</label><div class="field-wrap"><input type="number" id="netIncome" value="4250000"><span class="field-note">Итоговая прибыль после налогов за последние 12 месяцев. Используется для расчёта EBITDA.</span></div></div>
+                <div class="input-row"><label>Проценты к уплате за 4 квартала (тыс. руб)</label><div class="field-wrap"><input type="number" id="interestExp" value="520000"><span class="field-note">Фактические процентные расходы по кредитам/займам за LTM. Нужны для ICR = EBITDA / проценты.</span></div></div>
+                <div class="input-row"><label>Налог на прибыль за 4 квартала (тыс. руб)</label><div class="field-wrap"><input type="number" id="taxes" value="1080000"><span class="field-note">Начисленный налог на прибыль за LTM. Добавляется обратно при расчёте EBITDA.</span></div></div>
+                <div class="input-row"><label>Амортизация D&A за 4 квартала (тыс. руб)</label><div class="field-wrap"><input type="number" id="depreciation" value="890000"><span class="field-note">Амортизация основных средств и НМА за LTM. Добавляется обратно к прибыли.</span></div></div>
+                <div class="input-row"><label>Собственный капитал на отчётную дату (тыс. руб)</label><div class="field-wrap"><input type="number" id="equity" value="18500000"><span class="field-note">Балансовый капитал на конец периода. Используется для Net Debt / Equity.</span></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header">📈 Фактические ковенанты</div>
+                <div><span class="metric-small">EBITDA (LTM)</span><div class="metric-big" id="factEbitda">—</div></div>
+                <div class="input-row"><span>Долг / EBITDA</span><span id="factLev" class="badge">—</span></div>
+                <div class="input-row"><span>Процентное покрытие (ICR)</span><span id="factIcr" class="badge">—</span></div>
+                <div class="input-row"><span>Net Debt / Equity</span><span id="factD2E" class="badge">—</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="headroomFillFact" style="width:0%"></div></div>
+                <div id="factHeadroomText" class="metric-small">Запас по ковенанту Долг/EBITDA: —</div>
+            </div>
+        </div>
+        <div class="card verdict" id="verdictFact">⚖️ Оценка ковенантов на основе фактических данных</div>
+    </div>
+
+    <!-- ========================= ВКЛАДКА 2: ДОЛГ И СТАВКИ ========================= -->
+    <div id="debtPane" class="tab-pane">
+        <div class="grid-2col">
+            <div class="card">
+                <div class="card-header">🏛️ Структура долга</div>
+                <div class="section-note">Здесь вводится структура долга на отчётную дату. Net Debt = краткосрочный долг + долгосрочный долг + лизинг − денежные средства.</div>
+                <div class="input-row"><label>Краткосрочный долг (тыс. руб)</label><div class="field-wrap"><input type="number" id="shortDebt" value="3200000"><span class="field-note">Кредиты, займы и текущая часть долга со сроком погашения до 12 месяцев.</span></div></div>
+                <div class="input-row"><label>Долгосрочный долг (тыс. руб)</label><div class="field-wrap"><input type="number" id="longDebt" value="9500000"><span class="field-note">Кредиты, облигации и займы со сроком погашения более 12 месяцев.</span></div></div>
+                <div class="input-row"><label>Денежные средства (тыс. руб)</label><div class="field-wrap"><input type="number" id="cash" value="1500000"><span class="field-note">Деньги и эквиваленты, которые уменьшают чистый долг.</span></div></div>
+                <div class="input-row"><label>Средневзвеш. ставка (% годовых)</label><div class="field-wrap"><input type="number" id="avgRate" value="12.5" step="0.5"><span class="field-note">Средняя годовая ставка по долгу. Например: 12.5 означает 12,5% годовых.</span></div></div>
+                <div class="input-row"><label>Операционный лизинг / IFRS 16 (тыс. руб)</label><div class="field-wrap"><input type="number" id="leaseAdj" value="0" placeholder="добавить к долгу"><span class="field-note">Дополнительная долговая корректировка по аренде/лизингу, если банк включает её в ковенантный долг.</span></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header">🧾 Расчётный чистый долг</div>
+                <div><span class="metric-small">Total Gross Debt</span><div class="metric-big" id="grossDebt">—</div></div>
+                <div><span class="metric-small">Чистый долг (Net Debt)</span><div class="metric-big" id="netDebtCalc">—</div></div>
+                <div><span class="metric-small">Годовые проценты по gross debt</span><div id="annualInterestPay" style="font-weight:700">—</div></div>
+                <div class="metric-small">*лизинг увеличивает скорректированный долг (IFRS 16)</div>
+                <button id="syncDebtBtn" class="outline" style="margin-top:12px">⟳ Обновить проценты из долга и ставки</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= ВКЛАДКА 3: СТРЕСС-ТЕСТ ========================= -->
+    <div id="stressPane" class="tab-pane">
+        <div class="grid-2col">
+            <div class="card">
+                <div class="card-header">⚡ Сценарии ухудшения</div>
+                <div class="sensitivity-group">
+                    <div class="input-row"><label>Снижение EBITDA в стресс-сценарии</label><div class="field-wrap"><input type="range" id="stressEbitda" min="-40" max="0" value="-15" step="5"> <span id="stressEbitdaVal">-15%</span><span class="field-note">На сколько процентов EBITDA ухудшится относительно фактической LTM EBITDA.</span></div></div>
+                    <div class="input-row"><label>Рост ставки, п.п.</label><div class="field-wrap"><input type="range" id="stressRate" min="0" max="5" value="2" step="0.5"> <span id="stressRateVal">+2 п.п.</span><span class="field-note">П.п. = процентные пункты. Например, 12,5% + 2 п.п. = 14,5% годовых.</span></div></div>
+                </div>
+                <div class="verdict" id="stressComment">Примените стресс, чтобы увидеть нарушение ковенантов</div>
+            </div>
+            <div class="card">
+                <div class="card-header">📉 Результаты стресс-теста</div>
+                <div>Стресс-EBITDA: <strong id="stressedEbitda">—</strong></div>
+                <div>Долг / EBITDA (стресс): <strong id="stressedLev">—</strong> <span id="stressBadge" class="badge"></span></div>
+                <div>ICR (стресс): <strong id="stressedIcr">—</strong></div>
+                <div>∆ до нарушения ковенанта: <strong id="headroomStress">—</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================= ВКЛАДКА 4: ПРОГНОЗ + HEADROOM ========================= -->
+    <div id="forecastPane" class="tab-pane">
+        <div class="grid-2col">
+            <div class="card">
+                <div class="card-header">📆 Прогнозные параметры (4 квартала)</div>
+                <div class="section-note">Прогноз считается на 4 квартала вперёд. Рост EBITDA применяется поквартально: EBITDA × (1 + рост)^4.</div>
+                <div class="input-row"><label>Рост EBITDA в квартал (%)</label><div class="field-wrap"><input type="number" id="fcastGrowth" value="2" step="1"><span class="field-note">Ожидаемый квартальный рост EBITDA. Например: 2 означает +2% каждый квартал.</span></div></div>
+                <div class="input-row"><label>Новый долг / привлечение (тыс. руб)</label><div class="field-wrap"><input type="number" id="newDebt" value="0"><span class="field-note">Сумма нового финансирования, которая увеличит Net Debt в прогнозе.</span></div></div>
+                <div class="input-row"><label>Погашение долга за 4 квартала (тыс. руб)</label><div class="field-wrap"><input type="number" id="repayment" value="400000"><span class="field-note">Плановое погашение основного долга, которое уменьшит Net Debt.</span></div></div>
+                <div class="input-row"><label>Изменение ставки, п.п.</label><div class="field-wrap"><input type="number" id="deltaRate" value="0" step="0.5"><span class="field-note">Изменение годовой ставки в прогнозе. Например: 1.5 = ставка вырастет на 1,5 п.п.</span></div></div>
+            </div>
+            <div class="card">
+                <div class="card-header">🔮 Forward Covenant Headroom</div>
+                <div>Прогнозная EBITDA (4 кв): <strong id="fcastEbitda">—</strong></div>
+                <div>Прогнозный Net Debt: <strong id="fcastNetDebt">—</strong></div>
+                <div>Долг/EBITDA прогноз: <strong id="fcastLev">—</strong> <span id="fcastBadge" class="badge"></span></div>
+                <div class="progress-bar mt-2"><div class="progress-fill" id="headroomFillFcast" style="width:0%"></div></div>
+                <div id="headroomFcastText" class="metric-small">Запас до лимита 3.0x: —</div>
+            </div>
+        </div>
+        <div class="card verdict" id="verdictForward">Прогнозная оценка ковенантов через 12 месяцев</div>
+    </div>
+</div>
+
+<script>
+    // DOM elements
+    // факт
+    const netIncome = document.getElementById('netIncome');
+    const interestExp = document.getElementById('interestExp');
+    const taxes = document.getElementById('taxes');
+    const depreciation = document.getElementById('depreciation');
+    const equityEl = document.getElementById('equity');
+    // долги
+    const shortDebt = document.getElementById('shortDebt');
+    const longDebt = document.getElementById('longDebt');
+    const cash = document.getElementById('cash');
+    const avgRate = document.getElementById('avgRate');
+    const leaseAdj = document.getElementById('leaseAdj');
+    // стресс
+    const stressEbitdaSlider = document.getElementById('stressEbitda');
+    const stressRateSlider = document.getElementById('stressRate');
+    // прогноз
+    const fcastGrowth = document.getElementById('fcastGrowth');
+    const newDebtInput = document.getElementById('newDebt');
+    const repaymentInput = document.getElementById('repayment');
+    const deltaRate = document.getElementById('deltaRate');
+
+    // display fields
+    const factEbitdaSpan = document.getElementById('factEbitda');
+    const factLevSpan = document.getElementById('factLev');
+    const factIcrSpan = document.getElementById('factIcr');
+    const factD2ESpan = document.getElementById('factD2E');
+    const headroomFillFact = document.getElementById('headroomFillFact');
+    const factHeadroomText = document.getElementById('factHeadroomText');
+    const verdictFact = document.getElementById('verdictFact');
+    const grossDebtSpan = document.getElementById('grossDebt');
+    const netDebtCalcSpan = document.getElementById('netDebtCalc');
+    const annualInterestPaySpan = document.getElementById('annualInterestPay');
+    const syncBtn = document.getElementById('syncDebtBtn');
+    const stressedEbitdaSpan = document.getElementById('stressedEbitda');
+    const stressedLevSpan = document.getElementById('stressedLev');
+    const stressBadgeSpan = document.getElementById('stressBadge');
+    const stressedIcrSpan = document.getElementById('stressedIcr');
+    const headroomStressSpan = document.getElementById('headroomStress');
+    const stressCommentSpan = document.getElementById('stressComment');
+    const fcastEbitdaSpan = document.getElementById('fcastEbitda');
+    const fcastNetDebtSpan = document.getElementById('fcastNetDebt');
+    const fcastLevSpan = document.getElementById('fcastLev');
+    const fcastBadge = document.getElementById('fcastBadge');
+    const headroomFillFcast = document.getElementById('headroomFillFcast');
+    const headroomFcastText = document.getElementById('headroomFcastText');
+    const verdictForward = document.getElementById('verdictForward');
+    const stressEbitdaVal = document.getElementById('stressEbitdaVal');
+    const stressRateVal = document.getElementById('stressRateVal');
+
+
+    function num(el) {
+        if (!el) return 0;
+        const raw = String(el.value || '').replace(/\s/g, '').replace(',', '.');
+        const value = Number(raw);
+        return Number.isFinite(value) ? value : 0;
+    }
+
+    function formatMoney(v) { return new Intl.NumberFormat('ru-RU').format(Math.round(v)); }
+    function formatRatio(v, digits=2) { if(v===undefined || !isFinite(v)) return '∞'; return v.toFixed(digits)+'x'; }
+    
+    // основные расчёты факта
+    function calcEbitda() {
+        let ni = num(netIncome);
+        let int = num(interestExp);
+        let tax = num(taxes);
+        let da = num(depreciation);
+        return ni + int + tax + da;
+    }
+    function getNetDebtFromInputs() {
+        let short = num(shortDebt);
+        let long = num(longDebt);
+        let cashVal = num(cash);
+        let lease = num(leaseAdj);
+        return (short+long+lease) - cashVal;
+    }
+    function getGrossDebt() { return num(shortDebt)+num(longDebt)+num(leaseAdj); }
+    
+    function updateFactAndDerived() {
+        let ebitda = calcEbitda();
+        let netDebt = getNetDebtFromInputs();
+        let equity = num(equityEl) || 1;
+        let interest = num(interestExp);
+        factEbitdaSpan.innerText = formatMoney(ebitda)+' тыс. руб';
+        let lev = (ebitda>0) ? netDebt/ebitda : (netDebt>0 ? 999 : 0);
+        let icr = (interest>0) ? ebitda/interest : (ebitda>0 ? 999 : 0);
+        let d2e = (equity>0) ? netDebt/equity : 0;
+        factLevSpan.innerText = formatRatio(lev,2); factLevSpan.className = (lev<3 ? 'badge pass' : 'badge fail');
+        factIcrSpan.innerText = formatRatio(icr,2); factIcrSpan.className = (icr>=2 ? 'badge pass' : 'badge fail');
+        factD2ESpan.innerText = formatRatio(d2e,2); factD2ESpan.className = (d2e<1 ? 'badge pass' : 'badge warn');
+        let headroom = Math.max(0, (3 - lev)/3 * 100);
+        if(lev>=3) headroom=0;
+        headroomFillFact.style.width = Math.min(100, headroom)+'%';
+        factHeadroomText.innerText = `Запас до 3.0x: ${(3-lev).toFixed(2)}x (${headroom.toFixed(0)}% от лимита)`;
+        let verdictText = (lev<3 && icr>=2) ? '✅ Ковенанты соблюдены. Рекомендуется мониторинг ликвидности.' : (lev>=3 ? '⚠️ НАРУШЕНИЕ: Долг/EBITDA > 3.0x, требуется waiver или рефинансирование.' : '⚠️ Низкое процентное покрытие, риск ковенанта.');
+        verdictFact.innerText = verdictText;
+        return {ebitda, netDebt, interest, lev, icr};
+    }
+    
+    function updateDebtPanel() {
+        let gross = getGrossDebt();
+        let netD = getNetDebtFromInputs();
+        let rate = num(avgRate)/100;
+        let interestCalc = gross * rate; // проценты считаем от gross debt, т.к. банк начисляет проценты на валовой долг
+        grossDebtSpan.innerText = formatMoney(gross);
+        netDebtCalcSpan.innerText = formatMoney(netD);
+        annualInterestPaySpan.innerText = formatMoney(interestCalc) + ' тыс. руб (оценочно)';
+    }
+    
+    function syncNetDebtToFact() {
+        // Обновляем фактические процентные расходы на основе gross debt и средней ставки.
+        // Net Debt остаётся производным показателем из структуры долга и cash.
+        let gross = getGrossDebt();
+        let rate = num(avgRate)/100;
+        interestExp.value = Math.round(gross * rate);
+        updateDebtPanel();
+        updateFactAndDerived();
+        updateStressAndForecast();
+    }
+    
+    function updateStressAndForecast() {
+        let base = updateFactAndDerived();
+        let ebitdaBase = base.ebitda;
+        let interestBase = base.interest;
+        let netDebtBase = getNetDebtFromInputs();
+        let stressPct = num(stressEbitdaSlider)/100;
+        let stressedEbitda = ebitdaBase * (1+stressPct);
+        let baseRate = num(avgRate)/100;
+        let rateShift = num(stressRateSlider)/100; // п.п. к годовой ставке
+        let stressedRate = Math.max(0, baseRate + rateShift);
+        let stressedInterest = getGrossDebt() * stressedRate;
+        let stressedLev = (stressedEbitda>0) ? netDebtBase/stressedEbitda : 999;
+        let stressedIcr = (stressedInterest>0) ? stressedEbitda/stressedInterest : 999;
+        stressedEbitdaSpan.innerText = formatMoney(stressedEbitda);
+        stressedLevSpan.innerText = formatRatio(stressedLev,2);
+        stressedIcrSpan.innerText = formatRatio(stressedIcr,2);
+        let stressFail = stressedLev>=3;
+        stressBadgeSpan.innerText = stressFail ? '❌ Ковенант нарушен' : '✅ Остаётся в норме';
+        stressBadgeSpan.className = stressFail ? 'badge fail' : 'badge pass';
+        let headroomStress = Math.max(0, 3-stressedLev).toFixed(2);
+        headroomStressSpan.innerText = headroomStress+'x до лимита';
+        stressCommentSpan.innerText = stressFail ? `🚨 При снижении EBITDA на ${Math.abs(stressPct*100)}% и росте ставки на ${Math.round(rateShift*1000)/10} п.п. Долг/EBITDA = ${stressedLev.toFixed(2)}x → ковенант нарушен.` : `Стресс-тест пройден: запас ${headroomStress}x. ICR пересчитан по ставке ${(stressedRate*100).toFixed(1)}%.`;
+        
+        // Forecast
+        let growthQ = num(fcastGrowth)/100;
+        let ebitdaForecast = ebitdaBase * Math.pow(1+growthQ, 4); // 4 квартала с капитализацией квартального роста
+        let newD = num(newDebtInput);
+        let repay = num(repaymentInput);
+        let deltaR = num(deltaRate)/100; // п.п. к годовой ставке
+        let netDebtForecast = netDebtBase + newD - repay;
+        let forecastRate = Math.max(0, (num(avgRate)/100) + deltaR);
+        let grossDebtForecast = Math.max(0, getGrossDebt() + newD - repay);
+        let interestForecast = grossDebtForecast * forecastRate;
+        let levForecast = (ebitdaForecast>0) ? netDebtForecast/ebitdaForecast : 999;
+        fcastEbitdaSpan.innerText = formatMoney(ebitdaForecast);
+        fcastNetDebtSpan.innerText = formatMoney(netDebtForecast);
+        fcastLevSpan.innerText = formatRatio(levForecast,2);
+        let fcastOk = levForecast<3;
+        fcastBadge.innerText = fcastOk ? '✅ Прогноз соблюдает' : '⚠️ Нарушение через 12 мес';
+        fcastBadge.className = fcastOk ? 'badge pass' : 'badge fail';
+        let headroomFcast = Math.max(0, (3-levForecast)/3*100);
+        headroomFillFcast.style.width = Math.min(100, headroomFcast)+'%';
+        headroomFcastText.innerText = `Запас до 3.0x: ${(3-levForecast).toFixed(2)}x (${headroomFcast.toFixed(0)}% от лимита)`;
+        let forwardVerdict = (levForecast<3) ? '✅ Прогноз соблюдения ковенантов. Headroom стабилен.' : `⚠️ При текущем прогнозе через 4 квартала Долг/EBITDA = ${levForecast.toFixed(2)}x → требуется снижение долга или рост EBITDA.`;
+        verdictForward.innerText = forwardVerdict;
+    }
+    
+    // event listeners
+    const allFact = [netIncome, interestExp, taxes, depreciation, equityEl];
+    const allDebt = [shortDebt, longDebt, cash, avgRate, leaseAdj];
+    const allStress = [stressEbitdaSlider, stressRateSlider];
+    const allForecast = [fcastGrowth, newDebtInput, repaymentInput, deltaRate];
+    [...allFact, ...allDebt].forEach(el => el.addEventListener('input', () => { updateFactAndDerived(); updateDebtPanel(); updateStressAndForecast(); }));
+    allStress.forEach(el => el.addEventListener('input', () => { updateStressAndForecast(); updateFactAndDerived(); }));
+    allForecast.forEach(el => el.addEventListener('input', () => updateStressAndForecast()));
+    syncBtn.addEventListener('click', () => { updateDebtPanel(); updateFactAndDerived(); updateStressAndForecast(); });
+    
+    stressEbitdaSlider.addEventListener('input', () => stressEbitdaVal.innerText = stressEbitdaSlider.value+'%');
+    stressRateSlider.addEventListener('input', () => stressRateVal.innerText = '+'+stressRateSlider.value+'%');
+    
+    // tabs — работает и на мобильных браузерах
+    function openTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active-pane'));
+
+        const activeBtn = document.querySelector(`.tab-btn[data-tab="${tabName}"]`);
+        const activePane = document.getElementById(tabName + 'Pane');
+
+        if (activeBtn) activeBtn.classList.add('active');
+        if (activePane) activePane.classList.add('active-pane');
+
+        setTimeout(() => {
+            updateFactAndDerived();
+            updateDebtPanel();
+            updateStressAndForecast();
+        }, 0);
+    }
+
+    document.querySelector('.tabs').addEventListener('click', function(e) {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        e.preventDefault();
+        openTab(btn.dataset.tab);
+    });
+
+    document.querySelector('.tabs').addEventListener('touchend', function(e) {
+        const btn = e.target.closest('.tab-btn');
+        if (!btn) return;
+        e.preventDefault();
+        openTab(btn.dataset.tab);
+    }, { passive: false });
+    
+const moneyInputIds = [
+    'netIncome','interestExp','taxes','depreciation','equity',
+    'shortDebt','longDebt','cash','leaseAdj','newDebt','repayment'
+];
+const decimalInputIds = ['avgRate','deltaRate','fcastGrowth'];
+
+function normalizeNumericText(value, allowDecimal=false) {
+    let raw = String(value || '')
+        .replace(/\u00A0/g, ' ')
+        .replace(/\s/g, '')
+        .replace(',', '.');
+
+    raw = raw.replace(allowDecimal ? /[^0-9.\-]/g : /[^0-9\-]/g, '');
+
+    const isNegative = raw.startsWith('-');
+    raw = raw.replace(/\-/g, '');
+    if (isNegative) raw = '-' + raw;
+
+    if (allowDecimal) {
+        const parts = raw.split('.');
+        raw = parts.shift() + (parts.length ? '.' + parts.join('') : '');
+    }
+    return raw;
 }
+
+function formatNumericInput(el) {
+    const allowDecimal = decimalInputIds.includes(el.id);
+    let raw = normalizeNumericText(el.value, allowDecimal);
+
+    if (raw === '' || raw === '-') {
+        el.value = raw;
+        return;
+    }
+
+    let [intPart, decPart] = raw.split('.');
+    const isNegative = intPart.startsWith('-');
+    intPart = intPart.replace('-', '');
+
+    // Убираем лишние нули слева, но оставляем один ноль
+    intPart = intPart.replace(/^0+(?=\d)/, '');
+
+    const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    el.value = (isNegative ? '-' : '') + grouped + (allowDecimal && decPart !== undefined ? ',' + decPart.slice(0, 2) : '');
+}
+
+function preparePrettyNumberInputs() {
+    document.querySelectorAll('input[type="number"]').forEach(el => {
+        el.type = 'text';
+        el.inputMode = 'decimal';
+        el.autocomplete = 'off';
+
+        if (moneyInputIds.includes(el.id)) {
+            el.dataset.money = 'true';
+            el.inputMode = 'numeric';
+        } else if (['avgRate','deltaRate'].includes(el.id)) {
+            el.dataset.rate = 'true';
+        } else if (['fcastGrowth'].includes(el.id)) {
+            el.dataset.percent = 'true';
+        }
+
+        formatNumericInput(el);
+        el.addEventListener('input', () => {
+            formatNumericInput(el);
+            updateFactAndDerived();
+            updateDebtPanel();
+            updateStressAndForecast();
+        });
+    });
+}
+preparePrettyNumberInputs();
+
+
+    // init
+    updateFactAndDerived();
+    updateDebtPanel();
+    updateStressAndForecast();
+    stressEbitdaVal.innerText = stressEbitdaSlider.value+'%';
+    stressRateVal.innerText = '+'+stressRateSlider.value+' п.п.';
+</script>
+</body>
+</html>
